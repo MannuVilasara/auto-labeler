@@ -9,7 +9,7 @@ inputs:
   config_path:
     description: 'Path to labels.json'
     required: false
-    default: './github/labels.json'
+    default: '.github/labels.json'
 
 runs:
   using: 'node16'

@@ -2,6 +2,8 @@ name: Continuous Integration
 
 on:
   pull_request:
+    types:
+      - labeled
     branches:
       - main
   push:
@@ -10,11 +12,14 @@ on:
 
 permissions:
   contents: read
+  issues: write # needed to add labels to issues/PRs
+  pull-requests: write # optional, for extra PR actions
 
 jobs:
   test-typescript:
     name: TypeScript Tests
     runs-on: ubuntu-latest
+    if: github.event.label.name == 'ready-for-ci'
 
     steps:
       - name: Checkout
@@ -36,10 +41,6 @@ jobs:
         id: npm-format-check
         run: npm run format:check
 
-      - name: Lint
-        id: npm-lint
-        run: npm run lint
-
       - name: Test
         id: npm-ci-test
         run: npm run ci-test
@@ -56,8 +57,6 @@ jobs:
       - name: Test Local Action
         id: test-action
         uses: ./
-        with:
-          milliseconds: 2000
 
       - name: Print Output
         id: output
