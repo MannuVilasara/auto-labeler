@@ -32,17 +32,7 @@ describe('Auto Labeler Action - Integration Tests', () => {
       ]
 
       // Simulate the labeling logic from main.ts
-      const labelsToAdd = new Set<string>()
-
-      for (const [label, paths] of Object.entries(labelConfig)) {
-        for (const file of changedFiles) {
-          if (paths.some((path) => file.startsWith(path))) {
-            labelsToAdd.add(label)
-          }
-        }
-      }
-
-      const finalLabels = Array.from(labelsToAdd).sort()
+      const finalLabels = getLabelsForChangedFiles(labelConfig, changedFiles)
       expect(finalLabels).toEqual(['backend', 'frontend', 'tests'])
     })
 
