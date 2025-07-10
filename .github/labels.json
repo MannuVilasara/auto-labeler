@@ -1,0 +1,5 @@
+{
+  "frontend": ["src/frontend/", "components/"],
+  "backend": ["src/backend/", "api/"],
+  "docs": ["README.md", "docs/"]
+}

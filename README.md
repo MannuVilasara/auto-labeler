@@ -117,7 +117,9 @@ So, what are you waiting for? Go ahead and start customizing your action!
    ```
 
 1. Replace the contents of `src/` with your action code
+
 1. Add tests to `__tests__/` for your source code
+
 1. Format, test, and build the action
 
    ```bash
@@ -170,6 +172,7 @@ So, what are you waiting for? Go ahead and start customizing your action!
    ```
 
 1. Create a pull request and get feedback on your action
+
 1. Merge the pull request into the `main` branch
 
 Your action is now published! :rocket:
@@ -268,6 +271,7 @@ missing or non-compliant licenses. This workflow is initially disabled. To
 enable the workflow, follow the below steps.
 
 1. Open [`licensed.yml`](./.github/workflows/licensed.yml)
+
 1. Uncomment the following lines:
 
    ```yaml
