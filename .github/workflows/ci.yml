@@ -2,6 +2,8 @@ name: Continuous Integration
 
 on:
   pull_request:
+    types:
+      - labeled
     branches:
       - main
   push:
@@ -17,6 +19,7 @@ jobs:
   test-typescript:
     name: TypeScript Tests
     runs-on: ubuntu-latest
+    if: github.event.label.name == 'ready-for-ci'
 
     steps:
       - name: Checkout
@@ -45,6 +48,7 @@ jobs:
   test-action:
     name: GitHub Actions Test
     runs-on: ubuntu-latest
+    if: github.event.label.name == 'ready-for-ci'
 
     steps:
       - name: Checkout
