@@ -5,7 +5,7 @@ inputs:
   token:
     description: 'GitHub token'
     required: false
-    default: '${{ secrets.GITHUB_TOKEN }}'
+    default: '${{ github.token }}'
   config_path:
     description: 'Path to labels.json'
     required: false
