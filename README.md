@@ -1,311 +1,336 @@
-# Create a GitHub Action Using TypeScript
+# Auto Labeler GitHub Action
 
-[![GitHub Super-Linter](https://github.com/actions/typescript-action/actions/workflows/linter.yml/badge.svg)](https://github.com/super-linter/super-linter)
-![CI](https://github.com/actions/typescript-action/actions/workflows/ci.yml/badge.svg)
-[![Check dist/](https://github.com/actions/typescript-action/actions/workflows/check-dist.yml/badge.svg)](https://github.com/actions/typescript-action/actions/workflows/check-dist.yml)
-[![CodeQL](https://github.com/actions/typescript-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/actions/typescript-action/actions/workflows/codeql-analysis.yml)
+[![CI](https://github.com/mannuscrazy/auto-labeler/actions/workflows/ci.yml/badge.svg)](https://github.com/mannuscrazy/auto-labeler/actions/workflows/ci.yml)
 [![Coverage](./badges/coverage.svg)](./badges/coverage.svg)
 
-Use this template to bootstrap the creation of a TypeScript action. :rocket:
+Automatically label pull requests based on changed files using configurable path
+patterns. :label:
 
-This template includes compilation support, tests, a validation workflow,
-publishing, and versioning guidance.
+This GitHub Action analyzes the files changed in a pull request and applies
+labels based on a configuration file that maps labels to file path patterns.
+Perfect for organizing and categorizing pull requests in large projects with
+multiple teams or components.
 
-If you are new, there's also a simpler introduction in the
-[Hello world JavaScript action repository](https://github.com/actions/hello-world-javascript-action).
+## Features
 
-## Create Your Own Action
+- 🎯 **Automatic Label Assignment**: Labels PRs based on changed file paths
+- ⚙️ **Configurable Path Patterns**: Use JSON configuration to define label
+  mappings
+- 🔄 **Smart Pattern Matching**: Supports prefix matching for flexible file
+  organization
+- 🚫 **Duplicate Prevention**: Automatically deduplicates labels when multiple
+  patterns match
+- 📝 **Comprehensive Logging**: Detailed info about applied labels and matching
+  logic
+- ✅ **Error Handling**: Graceful handling of missing files, invalid JSON, and
+  API errors
 
-To create your own action, you can use this repository as a template! Just
-follow the below instructions:
+## Quick Start
 
-1. Click the **Use this template** button at the top of the repository
-1. Select **Create a new repository**
-1. Select an owner and name for your new repository
-1. Click **Create repository**
-1. Clone your new repository
+### 1. Add the Action to Your Workflow
 
-> [!IMPORTANT]
->
-> Make sure to remove or update the [`CODEOWNERS`](./CODEOWNERS) file! For
-> details on how to use this file, see
-> [About code owners](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
+Create or update `.github/workflows/auto-label.yml`:
 
-## Initial Setup
+```yaml
+name: Auto Label PRs
 
-After you've cloned the repository to your local machine or codespace, you'll
-need to perform some initial setup steps before you can develop your action.
+on:
+  pull_request:
+    types: [opened, synchronize]
 
-> [!NOTE]
->
-> You'll need to have a reasonably modern version of
-> [Node.js](https://nodejs.org) handy (20.x or later should work!). If you are
-> using a version manager like [`nodenv`](https://github.com/nodenv/nodenv) or
-> [`fnm`](https://github.com/Schniz/fnm), this template has a `.node-version`
-> file at the root of the repository that can be used to automatically switch to
-> the correct version when you `cd` into the repository. Additionally, this
-> `.node-version` file is used by GitHub Actions in any `actions/setup-node`
-> actions.
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
 
-1. :hammer_and_wrench: Install the dependencies
+jobs:
+  auto-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Auto Label PR
+        uses: mannuscrazy/auto-labeler@v1
+        with:
+          token: ${{ github.token }}
+          config_path: '.github/labels.json'
+```
+
+### 2. Create Your Configuration File
+
+Create `.github/labels.json` with your label mappings:
+
+```json
+{
+  "frontend": ["src/components/", "src/pages/", "public/"],
+  "backend": ["src/api/", "src/services/", "server/"],
+  "tests": ["__tests__/", "test/", "*.test.ts", "*.spec.ts"],
+  "documentation": ["README.md", "docs/"],
+  "ci/cd": [".github/", "Dockerfile"]
+}
+```
+
+### 3. That's It
+
+The action will now automatically label your pull requests based on the files
+changed.
+
+## Configuration
+
+### Inputs
+
+| Input         | Description                           | Required | Default               |
+| ------------- | ------------------------------------- | -------- | --------------------- |
+| `token`       | GitHub token for API access           | No       | `${{ github.token }}` |
+| `config_path` | Path to the labels configuration file | No       | `.github/labels.json` |
+
+### Configuration File Format
+
+The configuration file is a JSON object where:
+
+- **Keys** are the label names to apply
+- **Values** are arrays of file path patterns to match
+
+#### Path Matching Rules
+
+- **Prefix Matching**: Patterns match files that start with the specified path
+- **Exact Matching**: For specific files (e.g., `README.md`)
+- **Directory Matching**: End patterns with `/` to match directory contents
+
+#### Examples
+
+```json
+{
+  "frontend": ["src/components/"],
+  "config": ["package.json", "tsconfig.json"],
+  "docs": ["docs/", "README.md"],
+  "tests": ["__tests__/", "*.test.ts"]
+}
+```
+
+**Note**: The action currently uses prefix matching (startsWith). So
+`"*.test.ts"` will match files that start with `*.test.ts`, not files ending
+with `.test.ts`. For pattern matching like file extensions, use directory-based
+patterns or include the full path.
+
+## Usage Examples
+
+### Basic Web Project
+
+```json
+{
+  "frontend": [
+    "src/components/",
+    "src/pages/",
+    "src/styles/",
+    "public/",
+    "assets/"
+  ],
+  "backend": ["src/api/", "src/controllers/", "src/models/", "src/middleware/"],
+  "database": ["migrations/", "src/database/", "prisma/"],
+  "tests": ["__tests__/", "test/", "spec/"],
+  "documentation": ["README.md", "docs/", "CHANGELOG.md"],
+  "ci/cd": [".github/", "Dockerfile", "docker-compose.yml"],
+  "dependencies": ["package.json", "package-lock.json", "yarn.lock"]
+}
+```
+
+### Monorepo Project
+
+```json
+{
+  "web-app": ["apps/web/"],
+  "mobile-app": ["apps/mobile/"],
+  "api": ["apps/api/"],
+  "shared-ui": ["packages/ui/"],
+  "shared-utils": ["packages/utils/"],
+  "config": ["packages/config/"],
+  "documentation": ["docs/", "README.md"],
+  "tooling": [".github/", "scripts/"]
+}
+```
+
+## How It Works
+
+1. **Trigger**: Action runs when a pull request is opened or updated
+2. **Fetch Changes**: Retrieves the list of changed files from the GitHub API
+3. **Load Configuration**: Reads the label configuration from the specified JSON
+   file
+4. **Pattern Matching**: Compares each changed file against the configured
+   patterns
+5. **Apply Labels**: Adds matching labels to the pull request (deduplicates
+   automatically)
+6. **Report**: Logs which labels were applied and why
+
+### Example Output
+
+When labels are applied:
+
+```bash
+Added labels: frontend, tests, ci/cd to PR #123
+```
+
+When no patterns match:
+
+```bash
+No matching labels found for PR #123
+```
+
+## Troubleshooting
+
+### Common Issues
+
+#### Labels Not Applied
+
+1. **Check Configuration File**: Ensure `.github/labels.json` exists and has
+   valid JSON
+2. **Verify Permissions**: The workflow needs `pull-requests: write` permission
+3. **Check Path Patterns**: Remember that matching uses `startsWith()` -
+   patterns should be prefixes
+4. **Review Logs**: Check the action logs for error messages or debugging info
+
+#### Configuration Errors
+
+```json
+// ❌ Invalid JSON
+{
+  "frontend": ["src/components/"]  // Missing comma
+  "backend": ["src/api/"]
+}
+
+// ✅ Valid JSON
+{
+  "frontend": ["src/components/"],
+  "backend": ["src/api/"]
+}
+```
+
+#### Pattern Matching Issues
+
+```json
+// ❌ These won't work as expected (startsWith matching)
+{
+  "tests": ["**/*.test.ts", "*.spec.js"]
+}
+
+// ✅ Use directory patterns instead
+{
+  "tests": ["__tests__/", "test/", "src/tests/"]
+}
+```
+
+## Development
+
+This section is for contributors who want to modify or extend the action.
+
+### Prerequisites
+
+- Node.js 20.x or later
+- npm or yarn
+
+### Setup
+
+1. Clone the repository
+
+   ```bash
+   git clone https://github.com/mannuscrazy/auto-labeler.git
+   cd auto-labeler
+   ```
+
+2. Install dependencies
 
    ```bash
    npm install
    ```
 
-1. :building_construction: Package the TypeScript for distribution
+3. Build the action
 
    ```bash
    npm run bundle
    ```
 
-1. :white_check_mark: Run the tests
+4. Run tests
 
    ```bash
-   $ npm test
-
-   PASS  ./index.test.js
-     ✓ throws invalid number (3ms)
-     ✓ wait 500 ms (504ms)
-     ✓ test runs (95ms)
-
-   ...
+   npm test
    ```
 
-## Update the Action Metadata
+### Project Structure
 
-The [`action.yml`](action.yml) file defines metadata about your action, such as
-input(s) and output(s). For details about this file, see
-[Metadata syntax for GitHub Actions](https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions).
+```text
+src/
+├── index.ts          # Entry point
+├── main.ts           # Main action logic
+└── ...
 
-When you copy this repository, update `action.yml` with the name, description,
-inputs, and outputs for your action.
+__tests__/
+├── auto-labeler.test.ts    # Core functionality tests
+├── config.test.ts          # Configuration tests
+├── integration.test.ts     # Integration tests
+└── README.md              # Test documentation
 
-## Update the Action Code
+.github/
+├── workflows/
+│   └── ci.yml         # CI pipeline
+└── labels.json        # Example configuration
+```
 
-The [`src/`](./src/) directory is the heart of your action! This contains the
-source code that will be run when your action is invoked. You can replace the
-contents of this directory with your own code.
-
-There are a few things to keep in mind when writing your action code:
-
-- Most GitHub Actions toolkit and CI/CD operations are processed asynchronously.
-  In `main.ts`, you will see that the action is run in an `async` function.
-
-  ```javascript
-  import * as core from '@actions/core'
-  //...
-
-  async function run() {
-    try {
-      //...
-    } catch (error) {
-      core.setFailed(error.message)
-    }
-  }
-  ```
-
-  For more information about the GitHub Actions toolkit, see the
-  [documentation](https://github.com/actions/toolkit/blob/master/README.md).
-
-So, what are you waiting for? Go ahead and start customizing your action!
+### Making Changes
 
 1. Create a new branch
 
    ```bash
-   git checkout -b releases/v1
+   git checkout -b feature/your-feature
    ```
 
-1. Replace the contents of `src/` with your action code
+2. Make your changes in `src/`
 
-1. Add tests to `__tests__/` for your source code
+3. Add tests in `__tests__/`
 
-1. Format, test, and build the action
+4. Run the full test suite
 
    ```bash
    npm run all
    ```
 
-   > This step is important! It will run [`rollup`](https://rollupjs.org/) to
-   > build the final JavaScript action code with all dependencies included. If
-   > you do not run this step, your action will not work correctly when it is
-   > used in a workflow.
-
-1. (Optional) Test your action locally
-
-   The [`@github/local-action`](https://github.com/github/local-action) utility
-   can be used to test your action locally. It is a simple command-line tool
-   that "stubs" (or simulates) the GitHub Actions Toolkit. This way, you can run
-   your TypeScript action locally without having to commit and push your changes
-   to a repository.
-
-   The `local-action` utility can be run in the following ways:
-   - Visual Studio Code Debugger
-
-     Make sure to review and, if needed, update
-     [`.vscode/launch.json`](./.vscode/launch.json)
-
-   - Terminal/Command Prompt
-
-     ```bash
-     # npx @github/local action <action-yaml-path> <entrypoint> <dotenv-file>
-     npx @github/local-action . src/main.ts .env
-     ```
-
-   You can provide a `.env` file to the `local-action` CLI to set environment
-   variables used by the GitHub Actions Toolkit. For example, setting inputs and
-   event payload data used by your action. For more information, see the example
-   file, [`.env.example`](./.env.example), and the
-   [GitHub Actions Documentation](https://docs.github.com/en/actions/learn-github-actions/variables#default-environment-variables).
-
-1. Commit your changes
+5. Build the distribution
 
    ```bash
-   git add .
-   git commit -m "My first action is ready!"
+   npm run bundle
    ```
 
-1. Push them to your repository
+6. Commit and push your changes
 
-   ```bash
-   git push -u origin releases/v1
-   ```
+### Testing
 
-1. Create a pull request and get feedback on your action
+The action includes comprehensive tests covering:
 
-1. Merge the pull request into the `main` branch
+- Core labeling logic
+- Configuration file validation
+- Error handling scenarios
+- Integration testing
+- Edge cases
 
-Your action is now published! :rocket:
+See [`__tests__/README.md`](./__tests__/README.md) for detailed test
+documentation.
 
-For information about versioning your action, see
-[Versioning](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-in the GitHub Actions toolkit.
+### Contributing
 
-## Validate the Action
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Ensure all tests pass
+6. Submit a pull request
 
-You can now validate the action by referencing it in a workflow file. For
-example, [`ci.yml`](./.github/workflows/ci.yml) demonstrates how to reference an
-action in the same repository.
+## License
 
-```yaml
-steps:
-  - name: Checkout
-    id: checkout
-    uses: actions/checkout@v4
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
+for details.
 
-  - name: Test Local Action
-    id: test-action
-    uses: ./
-    with:
-      milliseconds: 1000
+## Support
 
-  - name: Print Output
-    id: output
-    run: echo "${{ steps.test-action.outputs.time }}"
-```
-
-For example workflow runs, check out the
-[Actions tab](https://github.com/actions/typescript-action/actions)! :rocket:
-
-## Usage
-
-After testing, you can create version tag(s) that developers can use to
-reference different stable versions of your action. For more information, see
-[Versioning](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-in the GitHub Actions toolkit.
-
-To include the action in a workflow in another repository, you can use the
-`uses` syntax with the `@` symbol to reference a specific branch, tag, or commit
-hash.
-
-```yaml
-steps:
-  - name: Checkout
-    id: checkout
-    uses: actions/checkout@v4
-
-  - name: Test Local Action
-    id: test-action
-    uses: actions/typescript-action@v1 # Commit with the `v1` tag
-    with:
-      milliseconds: 1000
-
-  - name: Print Output
-    id: output
-    run: echo "${{ steps.test-action.outputs.time }}"
-```
-
-## Publishing a New Release
-
-This project includes a helper script, [`script/release`](./script/release)
-designed to streamline the process of tagging and pushing new releases for
-GitHub Actions.
-
-GitHub Actions allows users to select a specific version of the action to use,
-based on release tags. This script simplifies this process by performing the
-following steps:
-
-1. **Retrieving the latest release tag:** The script starts by fetching the most
-   recent SemVer release tag of the current branch, by looking at the local data
-   available in your repository.
-1. **Prompting for a new release tag:** The user is then prompted to enter a new
-   release tag. To assist with this, the script displays the tag retrieved in
-   the previous step, and validates the format of the inputted tag (vX.X.X). The
-   user is also reminded to update the version field in package.json.
-1. **Tagging the new release:** The script then tags a new release and syncs the
-   separate major tag (e.g. v1, v2) with the new release tag (e.g. v1.0.0,
-   v2.1.2). When the user is creating a new major release, the script
-   auto-detects this and creates a `releases/v#` branch for the previous major
-   version.
-1. **Pushing changes to remote:** Finally, the script pushes the necessary
-   commits, tags and branches to the remote repository. From here, you will need
-   to create a new release in GitHub so users can easily reference the new tags
-   in their workflows.
-
-## Dependency License Management
-
-This template includes a GitHub Actions workflow,
-[`licensed.yml`](./.github/workflows/licensed.yml), that uses
-[Licensed](https://github.com/licensee/licensed) to check for dependencies with
-missing or non-compliant licenses. This workflow is initially disabled. To
-enable the workflow, follow the below steps.
-
-1. Open [`licensed.yml`](./.github/workflows/licensed.yml)
-
-1. Uncomment the following lines:
-
-   ```yaml
-   # pull_request:
-   #   branches:
-   #     - main
-   # push:
-   #   branches:
-   #     - main
-   ```
-
-1. Save and commit the changes
-
-Once complete, this workflow will run any time a pull request is created or
-changes pushed directly to `main`. If the workflow detects any dependencies with
-missing or non-compliant licenses, it will fail the workflow and provide details
-on the issue(s) found.
-
-### Updating Licenses
-
-Whenever you install or update dependencies, you can use the Licensed CLI to
-update the licenses database. To install Licensed, see the project's
-[Readme](https://github.com/licensee/licensed?tab=readme-ov-file#installation).
-
-To update the cached licenses, run the following command:
-
-```bash
-licensed cache
-```
-
-To check the status of cached licenses, run the following command:
-
-```bash
-licensed status
-```
-
-I hope it works
+- 📖 [Documentation](https://github.com/mannuscrazy/auto-labeler)
+- 🐛 [Report Issues](https://github.com/mannuscrazy/auto-labeler/issues)
+- 💬 [Discussions](https://github.com/mannuscrazy/auto-labeler/discussions)

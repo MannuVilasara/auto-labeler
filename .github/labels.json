@@ -1,5 +1,15 @@
 {
-  "frontend": ["src/frontend/", "components/"],
-  "backend": ["src/backend/", "api/"],
-  "docs": ["README.md", "docs/"]
+  "frontend": [
+    "src/components/",
+    "src/pages/",
+    "src/styles/",
+    "public/",
+    "assets/"
+  ],
+  "backend": ["src/api/", "src/controllers/", "src/models/", "src/middleware/"],
+  "database": ["migrations/", "src/database/", "prisma/"],
+  "tests": ["__tests__/", "test/", "spec/"],
+  "documentation": ["README.md", "docs/", "CHANGELOG.md"],
+  "ci/cd": [".github/", "Dockerfile", "docker-compose.yml"],
+  "dependencies": ["package.json", "package-lock.json", "yarn.lock"]
 }
