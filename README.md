@@ -52,9 +52,6 @@ jobs:
 
       - name: Auto Label PR
         uses: MannuVilasara/auto-labeler@v1
-        with:
-          token: ${{ github.token }}
-          config_path: '.github/labels.json'
 ```
 
 ### 2. Create Your Configuration File
