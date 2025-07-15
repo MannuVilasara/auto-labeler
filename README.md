@@ -1,6 +1,6 @@
 # Auto Labeler GitHub Action
 
-[![CI](https://github.com/mannuscrazy/auto-labeler/actions/workflows/ci.yml/badge.svg)](https://github.com/mannuscrazy/auto-labeler/actions/workflows/ci.yml)
+[![CI](https://github.com/MannuVilasara/auto-labeler/actions/workflows/ci.yml/badge.svg)](https://github.com/MannuVilasara/auto-labeler/actions/workflows/ci.yml)
 [![Coverage](./badges/coverage.svg)](./badges/coverage.svg)
 
 Automatically label pull requests based on changed files using configurable path
@@ -51,7 +51,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Auto Label PR
-        uses: mannuscrazy/auto-labeler@v1
+        uses: MannuVilasara/auto-labeler@v1
         with:
           token: ${{ github.token }}
           config_path: '.github/labels.json'
@@ -234,7 +234,7 @@ This section is for contributors who want to modify or extend the action.
 1. Clone the repository
 
    ```bash
-   git clone https://github.com/mannuscrazy/auto-labeler.git
+   git clone https://github.com/MannuVilasara/auto-labeler.git
    cd auto-labeler
    ```
 
@@ -331,6 +331,6 @@ for details.
 
 ## Support
 
-- 📖 [Documentation](https://github.com/mannuscrazy/auto-labeler)
-- 🐛 [Report Issues](https://github.com/mannuscrazy/auto-labeler/issues)
-- 💬 [Discussions](https://github.com/mannuscrazy/auto-labeler/discussions)
+- 📖 [Documentation](https://github.com/MannuVilasara/auto-labeler)
+- 🐛 [Report Issues](https://github.com/MannuVilasara/auto-labeler/issues)
+- 💬 [Discussions](https://github.com/MannuVilasara/auto-labeler/discussions)
